@@ -1,0 +1,11 @@
+{
+    "name": "myfader",
+    "version": "0.1",
+    "description": "fade pages",
+    "manifest_version": 2,
+    "browser_action" :{
+        "default_icon": "icon.png",
+        "default_title": "Fader",
+        "default_popup": "popup.html"
+    }
+}

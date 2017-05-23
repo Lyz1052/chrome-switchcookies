@@ -1,0 +1,72 @@
+<style>
+    .row{
+        display: inline-block;
+        width:220px;
+        height:auto;
+        padding:5px;
+        cursor: pointer;
+    }
+
+    .hover:hover{
+        background-color: rgb(235,235,235);
+    }
+
+    .ok{
+        background-repeat: no-repeat;
+        background-image:  url(/image/glyphicons-207-ok.png) ;
+        background-size:14px 10px;
+        background-position: 90% 50%;/*left top*/
+    }
+
+    .btn{
+        margin-left:5px;
+        border-radius: 4px;
+    }
+
+    .delete{
+        opacity: 0.3;
+        display: inline-block;
+        width:10px;
+        height:10px;
+        margin-left: 130px;
+        /*margin-bottom: 3px;*/
+        background-size:10px 10px;
+        background-image:  url(/image/glyphicons-208-remove.png) ;
+        /*background-repeat: no-repeat;*/
+        /*background-position: 90% 50%;*/
+    }
+    .delete:hover{
+        opacity: 1;
+    }
+
+    .text{
+        margin-left: 5px;
+        display: inline-block;
+    }
+
+    .hide{
+        display: none;
+    }
+
+</style>
+<meta charset="utf-8">
+<div class="row">
+    <input type="button" class="btn" value="设置" id="setBtn">
+    <input type="button" class="btn" value="添加用户" id="adduserBtn">
+    <input type="button" class="btn" value="重新登录" id="relogBtn">
+</div>
+<hr/>
+<div class="user">
+    <div class="hover row"><div class="text">用户1</div></div>
+    <div class="hover row ok"><div class="text">用户2</div></div>
+</div>
+
+<hr/>
+
+<div class="env">
+    <div class="hover row"><div class="text">环境1</div></div>
+    <div class="hover row ok"><div class="text">环境2</div></div>
+</div>
+
+<script src="js/jquery-2.1.1.min.js"></script>
+<script src="js/popup.js"></script>
