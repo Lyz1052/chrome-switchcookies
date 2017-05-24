@@ -1,2 +1,69 @@
 <meta charset="utf-8">
-设置
+<style>
+    td div{ 
+        display: inline-block;
+        width:50px;
+    }
+</style>
+<link href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+<div class="bs-docs-header" id="content" tabindex="-1">
+      <div class="container">
+        <h1>Cookieswitcher</h1>
+        <p>方便地切换cookie。</p>
+        <div class="panel panel-default">
+            <div class="panel-heading">搜索Cookie</div>
+            <div class="panel-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="input-group">
+                        <input type="text" class="form-control" placeholder="输入域名搜索">
+                        <span class="input-group-btn">
+                            <button class="btn btn-default" type="button" showall="0">只显示已添加的站点</button>
+                        </span>
+                        </div>
+                    </div>
+                </div>
+                <table class="table table-hover">
+                    <thead>
+                        <th>域名地址</th><th>名称</th><th>操作</th>
+                    </thead>
+                    <tbody id="browserCookie">
+                        <tr>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="panel panel-default">
+            <div class="panel-heading">已保存的Cookie</div>
+            <div class="panel-body">
+                <table class="table table-hover">
+                    <thead>
+                        <th>域名地址</th><th>名称</th><th>账户</th><th>操作</th>
+                    </thead>
+                    <tbody id="storagedCookie">
+                        <!--<tr>
+                            <td>www.sohu.com</td><td>名称1</td><td>添加</td>
+                        </tr>-->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+      </div>
+</div>
+
+<script src="js/jquery-2.1.1.min.js"></script>
+<script src="js/localStorage.js"></script>
+<script src="js/settings.js"></script>
+
+<!--过滤：【输入框】//即时过滤cookies表
+【勾选】（已添加的域名）//即时过滤cookies表
+
+Cookies表:
+域名或IP	名称  操作
+
+//鼠标经过时，名称为输入框，操作为图标
+//当域名已添加时，操作按钮为减号，否则域名为加号
+
+过滤-->

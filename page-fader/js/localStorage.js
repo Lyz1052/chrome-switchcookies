@@ -10,7 +10,13 @@
     }
 
     var KEY = 'NamedlocalStorage';
+    var VERSION = '1.0';
     var localStorage = hasLocalStorage();
+
+    function getKey(){
+        if(key)
+            return this._keyvalue[key];
+    }
 
     function getAll(key){
         all = localStorage.getItem(KEY);
@@ -40,7 +46,10 @@
         var items=[],data= {
             domain:domain,
             items:items,
-            _keyvalue:{}
+            _keyvalue:{},
+            get(key){
+                return getKey.call(this,key);
+            }
         } , all = localStorage.getItem(KEY);
 
         if(!all){
@@ -91,9 +100,7 @@
         this.domain = _domain || global.document.domain;
         _domain = this.domain;
 
-        this.getAllDomain = function(){
-            return getAll('domain');
-        }
+        this.getAll = getAll;
         
         /**
          * 清空domain下name的本地存储
@@ -141,7 +148,10 @@
 
             var item ={
                 name:name,
-                _keyvalue:{}
+                _keyvalue:{},
+                get(key){
+                    return getKey.call(this,key);
+                }
             };
 
 
@@ -214,5 +224,30 @@
 
     }
 
-    global.LOCALSTORAGE = global.LOCALSTORAGE==undefined?LOCALSTORAGE:global.LOCALSTORAGE;
+    LOCALSTORAGE.VERSION = VERSION;
+
+    function compareVersion(v1,v2){
+        var res = 0;
+        try{
+            var v1s=v1.split('.'),v2s=v2.split('.');
+            if(v1s.length==v2s.length){
+                for(var i=0;i<v1s.length;i++){
+                    var n1=Number(v1s[i]);
+                    var n2=Number(v2s[i]);
+                    if(n1>n2){res=1;break;}
+                    if(n1<n2){res=-1;break;}
+                }
+            }
+        }catch(e){
+            res = -1;
+        }
+        return res;
+    }
+
+    if(!global.LOCALSTORAGE||
+        (global.LOCALSTORAGE&&
+        compareVersion(global.LOCALSTORAGE.VERSION,VERSION)<0)){
+        global.LOCALSTORAGE = LOCALSTORAGE;
+    }
+
 })(window)

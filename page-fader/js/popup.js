@@ -8,13 +8,14 @@ $(function(){
     var settings = getSettings();
 
     if(!settings){//当没有本地设置时，设置账号信息
-        // var manager_url = chrome.extension.getURL("settings.html");
-        // focusOrCreateTab(manager_url);
-        // window.close();
-        // return;
+        var manager_url = chrome.extension.getURL("settings.html");
+        focusOrCreateTab(manager_url);
+        window.close();
+        return;
     }
+    
     chrome.tabs.query({active:true},function(tabs){
-        alert(tabs[0].url);
+        // alert(tabs[0].url);
         $("body").on("click",".delete",function(){
 
         })
@@ -61,7 +62,7 @@ function focusOrCreateTab(url) {
 
 function getSettings(domain){
     var local = new LOCALSTORAGE();
-    var domains = local.getAllDomain();
+    var domains = local.getAll('domain');
     if(!domain||!domains.length){
         return null;
     }else{
