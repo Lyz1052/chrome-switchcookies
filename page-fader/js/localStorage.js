@@ -10,7 +10,6 @@
     }
 
     var KEY = 'NamedlocalStorage';
-    var domain = global.document.domain || '';
     var localStorage = hasLocalStorage();
 
     function getAll(key){
@@ -31,17 +30,17 @@
 
     function hasLocalStorage(){
         if(!global.localStorage){
-                console.info('提示：您的浏览器不支持本地存储，部分功能无法正常运行');
-            }
+            console.info('提示：您的浏览器不支持本地存储，部分功能无法正常运行');
             return false;
         }
         return global.localStorage;
     }
 
-    function getLocalStorage(){
+    function getLocalStorage(domain){
         var items=[],data= {
             domain:domain,
-            items:items
+            items:items,
+            _keyvalue:{}
         } , all = localStorage.getItem(KEY);
 
         if(!all){
@@ -49,12 +48,12 @@
         }else{
             all = JSON.parse(all);
 
-            var data = all.filter(function(e){
+            var filtered = all.filter(function(e){
                 return e.domain == domain;
             })
 
-            if(data.length){
-                return data[0];
+            if(filtered.length){
+                return filtered[0];
             }else{
                 all.push(data);
             }
@@ -65,14 +64,14 @@
     }
 
 
-    function setLocalStorage(items){
+    function setLocalStorage(key,value,domain){
         if(hasLocalStorage()){
-            getLocalStorage();
+            getLocalStorage(domain);
 
             var all = JSON.parse(localStorage.getItem(KEY));
             all = all.map(function(e){
                 if(e.domain == domain){
-                    e.items=items;
+                    e[key]=value;
                 }
                 return e;
             })
@@ -89,21 +88,44 @@
 
     var LOCALSTORAGE = function (_domain){
 
-        domain = _domain || domain;
+        this.domain = _domain || global.document.domain;
+        _domain = this.domain;
 
         this.getAllDomain = function(){
             return getAll('domain');
         }
         
         /**
-         * 清空某name的本地存储
-         * name为空，清空所有key的本地存储
-         * name不为空，清空指定key的本地存储
-         * @param enterpriseId
+         * 清空domain下name的本地存储
+         * 
+         * domain默认为当前域名
+         * name为空，则清空domain下所有存储
+         * name和domain都为空，清空所有存储
+         * 
+         * @param name
+         * @param domain
          * @returns {*}
          */
-        this.clear = function clearNamedLocalStorage(name){
-            removeLocalStorage();
+        this.clear = function clearNamedLocalStorage(name,domain){
+            if(name||domain){
+                domain = domain || _domain;
+
+                var items = getLocalStorage(domain).items;
+                if (items.length) {
+
+                    if(name)
+                        items = items.filter(function (e) {
+                            return e.name != name;
+                        });
+                    else
+                        items = [];
+
+                    setLocalStorage('items',items,domain);
+                }
+            }else{
+                removeLocalStorage();
+            }
+
         }
 
         /**
@@ -113,65 +135,84 @@
          * @param name
          * @returns {*}
          */
-        this.get = function getNamedLocalStorage(name){
-
-            var items = getLocalStorage().items;
+        this.get = function getNamedLocalStorage(name,key){
+            key = key || 'items';
+            var items = getLocalStorage(_domain)[key];
 
             var item ={
                 name:name,
+                _keyvalue:{}
             };
 
 
-            if (items.length) {
-                if(!name) {
-                    item = items;
-                }else{
-                    items = items.filter(function (e) {
-                        return e.name = name;
-                    });
+            if(Array.isArray(items)){//获取domain的items
 
-                    if (!items.length) {
-                        items.push(item);
+                if (items.length) {
+                    if(!name) {
+                        item = items;
                     }else{
-                        return items[0];
-                    }
+                        var filtered = items.filter(function (e) {
+                            return e.name == name;
+                        });
 
+                        if (!filtered.length) {
+                            items.push(item);
+                        }else{
+                            return filtered[0];
+                        }
+
+                    }
+                } else {//自动添加
+                    if(name)
+                        items.push(item);
+                    else
+                        item = items;
                 }
-            } else {
-                items.push(item);
+            
+            }else{//获取domain的属性
+                
+                return items[name];
+
             }
 
-            setLocalStorage(items);
+            setLocalStorage(key,items,_domain);
 
             return item;
         }
 
         /**
          * 设置name的本地存储
-         * key不存在时，自动创建记录
+         * name不存在时，自动创建记录
          * @param name
          * @param keyvalue
          */
         this.set = function setNamedLocalStorage(name,keyvalue){
+            debugger;
             if(name&&keyvalue) {
-                getNamedLocalStorage(name);//自动创建
+                if(typeof name == 'string'&&typeof keyvalue == 'object'){
+                    this.get(name);//自动创建
 
-                var items = getNamedLocalStorage();
+                    var items = this.get();
 
-                items = items.map(function (e) {
-                    if (e.enterpriseId == name) {
-                        for (var key in keyvalue) {
-                            e[key] = keyvalue[key];
+                    items = items.map(function (e) {
+                        if (e.name == name) {
+                            Object.assign(e['_keyvalue'],keyvalue);
                         }
-                    }
-                    return e;
-                })
+                        return e;
+                    })
 
-                setLocalStorage(items);
+                    setLocalStorage('items',items,_domain);
+
+                }else if(typeof name == 'object'){
+                    keyvalue = name;
+                    var data = getLocalStorage(_domain);
+
+                    Object.assign(data['_keyvalue'],keyvalue);
+                }
             }
         }
 
-    };
+    }
 
     global.LOCALSTORAGE = global.LOCALSTORAGE==undefined?LOCALSTORAGE:global.LOCALSTORAGE;
 })(window)
