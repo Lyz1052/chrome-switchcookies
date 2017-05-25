@@ -1,5 +1,5 @@
 var myStorage = new LSTOG();
-
+var cookiesMap ={};
 $('body').on('mouseenter','.user .row,.env .row',function(){
     // $(this).append('<div class="delete"></div>');
 }).on('mouseleave','.user .row,.env .row',function(){
@@ -19,59 +19,81 @@ $(function(){
         $(this).addClass('ok');
 
         //渲染
-        var domain = $(this).attr('data-domain');
-        var data = getDomainLocalStorage(domain);
-        if(data&&data.items){
-            var html = "";
-            data.items.forEach(function(e){
-                var className = "hover row ";
-                if(data.get('defaultName') == e.name){//默认账户
-                    className+="ok";
-                }
+        var defaultNameObj = new LSTOG(false).get('defaultName');//获取默认账户
+        var domainName = $(this).attr('data-domainName');
+        var data = cookiesMap[domainName];
+        var html = ""
+        
+        for(var name in data){
+            var className = "hover row ";
+            
+            if(defaultNameObj.get('name') == name){//默认账户
+                className+="ok";
+            }
 
-                html+='<div data-domain="'+domain+'" data-name="'+e.name+'" class="'+className+'">'
-                        + '<div class="text">'+e.name+'</div></div>';
-            })
-            $('#user').html(html);
+            html+='<div data-domainName="'+domainName+'" data-name="'+name+'" class="'+className+'">'
+                    + '<div class="text">'+name+'</div></div>';
         }
-    })
+
+        $('#user').html(html);
+
+    });
 
     $('body').on('click','#user .row',function(){//切换账户
         $(this).siblings().removeClass('ok');
         $(this).addClass('ok');
-        var domain = $(this).attr('data-domain');
+        var domainName = $(this).attr('data-domainName');
         var name = $(this).attr('data-name');
-        var cookies = getDomainLocalStorage(domain).items.filter(function(e){
-            return e.name == name;
-        })[0].get('cookies');
 
-        cookies.forEach(function(cookie){
-            var copied = {
-                url:'http://*/*',
-                name:cookie.name,
-                value:cookie.value,
-                domain:cookie.domain,
-                path:cookie.path,
-                secure:cookie.secure,
-                // httpOnly:cookie.httpOnly,
-                // expirationDate:cookie.expirationDate,
-                // sameSite:cookie.sameSite,
-                storeId:cookie.storeId
-            };
-            chrome.cookies.set(cookie,function(c){
+        var domainAndCookies = cookiesMap[domainName][name];
+
+        domainAndCookies.cookies.forEach(function(cookie){
+            chrome.cookies.set(cookieForCreationFromFullCookie(cookie),function(c){
 
             });
+        })
+
+        //修改默认账户
+        var defaultSetting = new LSTOG(false);
+        defaultSetting.set('defaultName',{
+            domainName:domainName,
+            name:name
         })
     });
     
     chrome.tabs.query({active:true},function(tabs){
         var data = getDomainLocalStorage();
+
+        /**
+         * 数据结构：
+         * {
+         *  '淘宝':{
+         *          'tbaccount01':[{domain:'.taobao.com',cookies:[...cookies]},{a.taobao.com,cookies:[...cookies]}]
+         *          'tbaccount02':[{domain:'.taobao.com',cookies:[...cookies]},{a.tabao.com,cookies:[...cookies]}]
+         *      }
+         * }
+         */
+
+        data.forEach(function(e){
+            var name = e.get('name');
+            cookiesMap[name] = cookiesMap[name] || {};
+            e.items.forEach(function(item){
+                cookiesMap[name][item.name] = cookiesMap[name][item.name] || [];
+                cookiesMap[name][item.name].push({
+                    domain:e.domain,
+                    cookies:item.get('cookies')
+                });
+            })
+            
+        })
+
         var html = "";
 
         //渲染
-        data.forEach(function(e){
-            html+='<div data-domain="'+e.domain+'" class="hover row"><div class="text" title="'+e.domain+'">'+e.get('name')+'</div></div>';
-        })
+        for(var domainName in cookiesMap){
+            html+='<div data-domainName="'+domainName+'" class="hover row"><div class="text">'+domainName+'</div></div>';
+        }
+
         $('#env').html(html);
 
         $("body").on("click",".delete",function(){
@@ -137,4 +159,21 @@ function getDomainLocalStorage(domain){
             return all;
         }
     }
+}
+
+function cookieForCreationFromFullCookie(fullCookie) {
+	var newCookie = {};
+    //If no real url is available use: "https://" : "http://" + domain + path
+    newCookie.url = "http" + ((fullCookie.secure) ? "s" : "") + "://" + fullCookie.domain + fullCookie.path;
+    newCookie.name = fullCookie.name;
+    newCookie.value = fullCookie.value;
+    if(!fullCookie.hostOnly)
+        newCookie.domain = fullCookie.domain;
+    newCookie.path = fullCookie.path;
+    newCookie.secure = fullCookie.secure;
+    newCookie.httpOnly = fullCookie.httpOnly;
+    if(!fullCookie.session)
+        newCookie.expirationDate = fullCookie.expirationDate;
+    newCookie.storeId = fullCookie.storeId;
+    return newCookie;
 }

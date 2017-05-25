@@ -35,6 +35,7 @@ var cookieFunction = {
         var domain = $('#domainInput').val();
 
         var domainName = $('#domainNameInput').val();
+        domainName = domainName?domainName:domain;//（必填，缺省值为地址值）
 
         var name = $('#accountNameInput').val();
 
@@ -42,9 +43,15 @@ var cookieFunction = {
 
         var saver = new LSTOG(domain);
 
-        saver.set({//站点名和该站点的默认账户名（当前存储的Cookies作为该站点的默认的账户名）
-            name:domainName,
-            dafaultName:name
+        var defaultSettingSaver = new LSTOG(false);
+
+        defaultSettingSaver.set('defaultName',{//该站点的默认登陆者
+            domainName:domainName,
+            name:name
+        });
+
+        saver.set({//站点名
+            name:domainName
         });
 
         saver.set(name,{//账户名
@@ -166,7 +173,8 @@ function loadCookie(searchDomain){
 function loadStorage(){
 
     var html ="";
-    myStorage.getAll().forEach(function(data){
+    var all = myStorage.getAll();
+    all.forEach(function(data){
         var domain = data.domain;
         var domainName = data.get('name');
         var domainCookies = getCookies(domain);

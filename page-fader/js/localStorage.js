@@ -10,17 +10,21 @@
     }
 
     var KEY = 'NamedlocalStorage';
-    var VERSION = '1.0';
+    var VERSION = '1.3';
+    var ISOLATED_DATA_KEY = '_ISOLATED_DATA';
     var localStorage = hasLocalStorage();
 
-    function appendKeyFunction(obj){
+    //给对象织入get方法，并且返回相应的对象（是否返回和域名相关的本地存储）
+    function weaveFunction(obj){
         if(!obj)return;
 
         if(Array.isArray(obj)){
+
+
             obj.forEach(function(e){
-                appendKeyFunction(e);
+                weaveFunction(e);
                 if(Array.isArray(e.items))
-                    appendKeyFunction(e.items);
+                    weaveFunction(e.items);
             });
         }else{
             obj.get = function(key){
@@ -32,14 +36,18 @@
 
     function getAll(key){
         all = localStorage.getItem(KEY);
+        var isDomainData = this.domain != ISOLATED_DATA_KEY;
         if(all){
+            var obj = JSON.parse(all);
+            obj = obj.filter(function(e){
+                return e.isDomainData == isDomainData;
+            })
+
+            weaveFunction(obj);
+
             if(!key){
-                var obj = JSON.parse(all);
-                appendKeyFunction(obj);
                 return obj;
             }else{
-                var obj = JSON.parse(all);
-                appendKeyFunction(obj);
                 return obj.map(function(e){
                     return e[key];
                 });
@@ -59,7 +67,10 @@
     }
 
     function getLocalStorage(domain){
+        var isDomainData = domain!=ISOLATED_DATA_KEY;
+
         var items=[],data= {
+            isDomainData:isDomainData,
             domain:domain,
             items:items,
             _keyvalue:{}
@@ -69,7 +80,8 @@
             all = [data];
         }else{
             var all = JSON.parse(all);
-            appendKeyFunction(all);
+
+            weaveFunction(all,isDomainData);
 
             var filtered = all.filter(function(e){
                 return e.domain == domain;
@@ -109,12 +121,25 @@
         }
     }
 
+    /**
+     * 构造方法
+     * _domain 为 string：操作该域名下的本地存储
+     * _domain 为 false: 操作与域名无关的本地存储
+     * @param {*} _domain 
+     */
     var LOCALSTORAGE = function (_domain){
 
-        this.domain = _domain || global.document.domain;
-        _domain = this.domain;
-
         this.getAll = getAll;
+
+        if(typeof _domain == 'string'){
+            this.domain = _domain;
+        }else if(typeof _domain=='boolean'&&!_domain){
+            _domain = ISOLATED_DATA_KEY;
+        }else{//domain未识别，不能进行除了获取全部域名存储以外的操作
+            return;
+        }
+
+        this.domain = _domain || global.document.domain;
         
         /**
          * 清空domain下name的本地存储
