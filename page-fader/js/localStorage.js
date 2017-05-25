@@ -13,18 +13,34 @@
     var VERSION = '1.0';
     var localStorage = hasLocalStorage();
 
-    function getKey(){
-        if(key)
-            return this._keyvalue[key];
+    function appendKeyFunction(obj){
+        if(!obj)return;
+
+        if(Array.isArray(obj)){
+            obj.forEach(function(e){
+                appendKeyFunction(e);
+                if(Array.isArray(e.items))
+                    appendKeyFunction(e.items);
+            });
+        }else{
+            obj.get = function(key){
+                if(key)
+                    return this._keyvalue[key];
+            };
+        }
     }
 
     function getAll(key){
         all = localStorage.getItem(KEY);
         if(all){
-            if(!key)
-                return JSON.parse(all);
-            else{
-                return JSON.parse(all).map(function(e){
+            if(!key){
+                var obj = JSON.parse(all);
+                appendKeyFunction(obj);
+                return obj;
+            }else{
+                var obj = JSON.parse(all);
+                appendKeyFunction(obj);
+                return obj.map(function(e){
                     return e[key];
                 });
             }
@@ -46,16 +62,14 @@
         var items=[],data= {
             domain:domain,
             items:items,
-            _keyvalue:{},
-            get(key){
-                return getKey.call(this,key);
-            }
+            _keyvalue:{}
         } , all = localStorage.getItem(KEY);
 
         if(!all){
             all = [data];
         }else{
-            all = JSON.parse(all);
+            var all = JSON.parse(all);
+            appendKeyFunction(all);
 
             var filtered = all.filter(function(e){
                 return e.domain == domain;
@@ -148,10 +162,7 @@
 
             var item ={
                 name:name,
-                _keyvalue:{},
-                get(key){
-                    return getKey.call(this,key);
-                }
+                _keyvalue:{}
             };
 
 
@@ -197,9 +208,8 @@
          * @param keyvalue
          */
         this.set = function setNamedLocalStorage(name,keyvalue){
-            debugger;
-            if(name&&keyvalue) {
-                if(typeof name == 'string'&&typeof keyvalue == 'object'){
+            if(name) {
+                if(keyvalue&&typeof name == 'string'&&typeof keyvalue == 'object'){
                     this.get(name);//自动创建
 
                     var items = this.get();
@@ -217,7 +227,7 @@
                     keyvalue = name;
                     var data = getLocalStorage(_domain);
 
-                    Object.assign(data['_keyvalue'],keyvalue);
+                    setLocalStorage('_keyvalue',Object.assign(data['_keyvalue'],keyvalue),_domain);
                 }
             }
         }
@@ -225,6 +235,7 @@
     }
 
     LOCALSTORAGE.VERSION = VERSION;
+
 
     function compareVersion(v1,v2){
         var res = 0;
@@ -244,10 +255,10 @@
         return res;
     }
 
-    if(!global.LOCALSTORAGE||
-        (global.LOCALSTORAGE&&
-        compareVersion(global.LOCALSTORAGE.VERSION,VERSION)<0)){
-        global.LOCALSTORAGE = LOCALSTORAGE;
+    if(!global.LSTOG||
+        (global.LSTOG&&
+        compareVersion(global.LSTOG.VERSION,VERSION)<0)){
+        global.LSTOG = LOCALSTORAGE;
     }
 
 })(window)
