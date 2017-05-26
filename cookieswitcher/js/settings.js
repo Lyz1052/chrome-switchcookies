@@ -3,14 +3,37 @@ if (!chrome.cookies) {
 }
 
 var cached=[];//cached cookies
-var pageOperating = false;//是否正在操作 
+var pageOperating = false;//是否正在操作，操作时不自动刷新列表
 var myStorage = new LSTOG();
 
 /**
  * Cookie有关方法
  */
 var cookieFunction = {
+    inspectCookie(obj){
+        var cookies;
+        var domain = $(obj).closest('tr').find('td[role="domain"]').html();
+        var domainName = $(obj).closest('tr').find('td[role="domainName"]').html();
+
+        if($(obj).closest('#storagedCookie').length){
+            var name = $(obj).closest('tr').find('td[role="name"]').html();
+            cookies = new LSTOG(domain).get(name).get('cookies');
+        }else if($(obj).closest('#browserCookie').length){
+            cookies = getCookies(domain);
+        }
+
+        if(cookies&&cookies.length){
+            var html = "";
+            cookies.forEach(function(cookie,i){
+                html+="<tr><td>"+(i+1)+"</td><td title='"+cookie.name+"'>"+cookie.name+"</td><td title='"+cookie.value+"' >"+cookie.value+"</td></tr>"
+            })
+            $('#cookieModal tbody').html(html);
+            $('#cookieModal').modal('show');
+        }
+    },
     addCookie(obj){
+        pageOperating = true;
+
         var domain = $(obj).closest('tr').find('td[role="domain"]').html();
         var domainName = $(obj).closest('tr').find('td[role="domainName"]').html();
         var localStorageItem = getDomainLocalStorageItem(domain);
@@ -26,9 +49,16 @@ var cookieFunction = {
         }
 
         $('#addModal').modal('show');
+
+        pageOperating = false;
     },
     confirmAddCookie(){
-        if(!$('#accountNameInput').val()){
+        pageOperating = true;
+
+        $('#accountNameInput').trigger('input');//显示错误提示
+        $('#domainNameInput').trigger('input');
+
+        if(!$('#accountNameInput').val()||!$('#domainNameInput').val()){
             return;
         }
 
@@ -58,38 +88,91 @@ var cookieFunction = {
             cookies:cookies
         });
 
+        pageOperating = false;
+
         $('#addModal').modal('hide');
+    },
+    deleteCookie(obj){
+        pageOperating = true;
+        var domain = $(obj).closest('tr').find('td[role="domain"]').html();
+        var name = $(obj).closest('tr').find('td[role="name"]').html();
+        var deleter = new LSTOG(domain);
+        deleter.clear(name);
+        loadStorage();
+        pageOperating = false;
     }
 }
+
+
 
 /**
  * 页面，事件初始化
  */
 $(function(){
-    chrome.cookies.getAll({}, function(cookies) {
-        cached = cookies;
+
+    cacheCookies(function(){
         loadCookie();
         loadStorage();
     });
 
+    chrome.cookies.onChanged.addListener(function(c){//cookies的change事件
+        if(!pageOperating)
+            cacheCookies(function(){
+                loadCookie();
+                loadStorage();
+            })
+    });
+
+    $('[data-toggle="popover"]').popover();
+
     $('#searchDomainInput').on('input',function(){
-        loadCookie($(this).val());
+        loadCookie();
+    })
+
+    $('#domainNameInput').on('input',function(){
+        if($(this).val()){
+            $(this).parent().removeClass('has-error');
+        }else{
+            $(this).parent().addClass('has-error');
+        }
+    })
+
+    $('#accountNameInput').on('input',function(){
+        if($(this).val()){
+            $(this).parent().removeClass('has-error');
+        }else{
+            $(this).parent().addClass('has-error');
+        }
     })
 
     $('#searchDomainBtn').on('click',function(){
-        loadCookie($('#searchDomainInput').val());
+        loadCookie();
     })
 
-    $('body').on('click','button[role]',function(){
-        cookieFunction[$(this).attr('role')].call(this,this)
+    $('body').on('click','button[role]',function(e){
+        cookieFunction[$(this).attr('role')].call(this,this);
+        e.stopPropagation();
+        return false;
     })
 
     $('.modal').on('hidden.bs.modal',function(){
         loadCookie();
         loadStorage();
     })
-    
+
 })
+
+/**
+ * 缓存Cookies
+ * @param {*} callback 
+ */
+function cacheCookies(callback){
+    chrome.cookies.getAll({}, function(cookies) {
+        cached = cookies;
+        callback();
+    });
+}
+
 /**
  * 获取Cookie
  * @param {*} domain 
@@ -108,8 +191,9 @@ function getCookies(domain){
  * 加载并显示Cookie
  * @param {*} searchDomain 
  */
-function loadCookie(searchDomain){
+function loadCookie(){
     pageOperating = true;
+    searchDomain = $('#searchDomainInput').val();
     var cookies = getCookies();
     var localStorageData = myStorage.getAll();
     
@@ -134,7 +218,7 @@ function loadCookie(searchDomain){
                 html+="<td role='domainName'>"+domainName+"</td>";//名称
                 html+="<td role='count'>"+cookies.length+"</td>";//数量
                 // if(!getDomainLocalStorageItem(domain,cookies,local,localStorageData))
-                html+="<td><div class='btn-group'><button role='addCookie' type='button' class='btn btn-default'>添加</button></div></td>";
+                html+="<td><div class='btn-group' role='group'><button role='inspectCookie' type='button' class='btn btn-default'>详细</button><button role='addCookie' type='button' class='btn btn-default'>添加</button></div></td>";
                 // else
                 //     html+="<td><div class='btn-group'><button role='updateCookie' type='button' class='btn btn-default'>更新</button></div></td>";
 
@@ -171,6 +255,7 @@ function loadCookie(searchDomain){
  * 加载并显示本地存储
  */
 function loadStorage(){
+    pageOperating = true;
 
     var html ="";
     var all = myStorage.getAll();
@@ -184,21 +269,24 @@ function loadStorage(){
             var name = item.name;
             var cookies = item.get('cookies');
 
-            html+="<td>"+domain+"</td>";//域名地址
-            html+="<td>"+domainName+"</td>";//名称
-            html+="<td>"+cookies.length+"</td>";//数量
-            html+="<td>"+name+"</td>";//账户
+            html+="<td role='domain'>"+domain+"</td>";//域名地址
+            html+="<td role='domainName' >"+domainName+"</td>";//名称
+            html+="<td role='count'>"+cookies.length+"</td>";//数量
+            html+="<td role='name'>"+name+"</td>";//账户
 
             // if(checkSameCookie(cookies,domainCookies))
-                html+="<td><div class='btn-group'><button role='deleteCookie' type='button' class='btn btn-default'>删除</button></div></td>";
+                html+="<td><div class='btn-group' role='group'><button role='inspectCookie' type='button' class='btn btn-default'>详细</button><button role='deleteCookie' type='button' class='btn btn-default'>删除</button></div></td>";
             // else
             //     html+="<td><div onclick='updateCookie(this)'>更新</div><div>删除</div></td>";
 
             html+="</tr>"
         })
 
-    })
+    });
+
     $('#storagedCookie').html(html);
+
+    pageOperating = false;
 }
 
 /**

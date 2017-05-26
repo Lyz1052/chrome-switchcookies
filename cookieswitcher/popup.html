@@ -6,6 +6,10 @@
         padding:5px;
         cursor: pointer;
     }
+    .ignored{
+        cursor: auto;
+        opacity: 0.8
+    }
 
     .hover:hover{
         background-color: rgb(235,235,235);
@@ -15,7 +19,7 @@
         background-repeat: no-repeat;
         background-image:  url(/image/glyphicons-207-ok.png) ;
         background-size:14px 10px;
-        background-position: 90% 50%;/*left top*/
+        background-position: 3% 55%;/*left top*/
     }
 
     .btn{
@@ -24,7 +28,6 @@
     }
 
     .delete{
-        opacity: 0.3;
         display: inline-block;
         width:10px;
         height:10px;
@@ -34,33 +37,49 @@
         background-image:  url(/image/glyphicons-208-remove.png) ;
         /*background-repeat: no-repeat;*/
         /*background-position: 90% 50%;*/
+        opacity: 0.3;
     }
     .delete:hover{
         opacity: 1;
     }
 
     .text{
-        margin-left: 5px;
         display: inline-block;
+        margin-left: 25px;
     }
 
     .hide{
         display: none;
     }
+    .setting{
+        display: block;
+        position: fixed;
+        z-index: 10;
+        width: 70px;
+        height: 18px;
+        top:12px;
+        right: 5px;
+        background-size: 10px 10px;
+        background-image: url(/image/glyphicons-137-cogwheel.png);
+        background-position: 90% 50%;
+        background-repeat: no-repeat;
+        opacity: 0.5;
+        cursor: pointer;
+    }
+    .setting:hover{
+        opacity: 1;
+    }
 
 </style>
 <meta charset="utf-8">
-<div class="row">
-    <input type="button" class="btn" value="设置" id="setBtn">
-    <input type="button" class="btn" value="添加用户" id="adduserBtn">
-    <input type="button" class="btn" value="重新登录" id="relogBtn">
+<div class="setting" id="settingDiv">
+    进入设置
 </div>
-<hr/>
 <div class="user" id="user">
     <!--<div class="hover row ok"><div class="text">用户2</div></div>-->
 </div>
 
-<hr/>
+<hr id="envHr" style="display:none"/>
 
 <div class="env" id="env">
     <!--<div class="hover row ok"><div class="text">环境2</div></div>-->

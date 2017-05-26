@@ -129,18 +129,11 @@
      */
     var LOCALSTORAGE = function (_domain){
 
+        /**
+         * 获取所有存储
+         */
         this.getAll = getAll;
 
-        if(typeof _domain == 'string'){
-            this.domain = _domain;
-        }else if(typeof _domain=='boolean'&&!_domain){
-            _domain = ISOLATED_DATA_KEY;
-        }else{//domain未识别，不能进行除了获取全部域名存储以外的操作
-            return;
-        }
-
-        this.domain = _domain || global.document.domain;
-        
         /**
          * 清空domain下name的本地存储
          * 
@@ -167,12 +160,25 @@
                         items = [];
 
                     setLocalStorage('items',items,domain);
+                    return true;
                 }
             }else{
                 removeLocalStorage();
+                return true;
             }
-
         }
+
+        if(typeof _domain == 'string'){
+            this.domain = _domain;
+        }else if(typeof _domain=='boolean'&&!_domain){
+            _domain = ISOLATED_DATA_KEY;
+        }else{//domain未识别，不能进行除了获取全部域名存储以外的操作
+            return;
+        }
+
+        this.domain = _domain || global.document.domain;
+        
+
 
         /**
          * 获取某name的本地存储
