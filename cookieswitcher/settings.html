@@ -12,15 +12,15 @@
 
     .fixed-5h{
         overflow: auto;
-        max-height:500px;
+        height:500px;
     }
     .fixed-4h{
         overflow: auto;
-        max-height:400px;
+        height:400px;
     }
     .fixed-3h{
         overflow: auto;
-        max-height:300px;
+        height:300px;
     }
     #cookieModal tbody td{
         max-width: 0px;
@@ -55,6 +55,15 @@
         background-size:15px 15px;
         /*background-position: 3% 55%;*/
         opacity: 0.3;
+    }
+    .footer hr{
+        height: 1px;
+        border: 0;
+        background-image: -webkit-linear-gradient(0deg,transparent,#777,transparent);
+    }
+    .footer-content{
+        text-align: center;
+        color:#777;
     }
 </style>
 <div class="page-bg" id="content" style="height:100%" tabindex="-1">
@@ -91,7 +100,7 @@
 
         <div class="panel panel-default">
             <div class="panel-heading">已存储的Cookie</div>
-            <div class="panel-body fixed-4h">
+            <div class="panel-body fixed-3h">
                 <table class="table table-hover">
                     <thead>
                         <th width="30%">域名地址</th><th width="20%">名称</th><th width="10%">数量</th><th width="20%">账户</th><th width="20%">操作</th>
@@ -102,6 +111,12 @@
             </div>
         </div>
       </div>
+      <footer  class="archive-footer footer archive-footer-fixed">
+        <hr>
+        <div class="footer-content">
+            © Lyz1052 @
+        </div>
+    </footer>
 </div>
 
 <div class="modal fade" id="cookieModal" tabindex="-1" role="dialog">

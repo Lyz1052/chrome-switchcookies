@@ -8,9 +8,14 @@
         "default_title": "Cookieswitcher",
         "default_popup": "popup.html"
     },
+     "options_page": "settings.html",
     "permissions": [
         "cookies",
         "tabs",
         "http://*/*"
-    ]
+    ],
+    "icons": 
+    { 
+        "48": "icon48.png"       
+    }
 }

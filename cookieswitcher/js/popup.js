@@ -128,7 +128,7 @@ $(function () {
 function jumpSettingPage() {
     var manager_url = chrome.extension.getURL("settings.html");
     focusOrCreateTab(manager_url);
-    window.close();
+    
 }
 
 function focusOrCreateTab(url) {
@@ -145,6 +145,7 @@ function focusOrCreateTab(url) {
             }
         }
         if (existing_tab) {
+            window.close();
             chrome.tabs.update(existing_tab.id, { "selected": true });
         } else {
             chrome.tabs.create({ "url": url, "selected": true });
