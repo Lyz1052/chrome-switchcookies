@@ -13,9 +13,5 @@
         "cookies",
         "tabs",
         "http://*/*"
-    ],
-    "icons": 
-    { 
-        "48": "icon48.png"       
-    }
+    ]
 }

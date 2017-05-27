@@ -110,6 +110,10 @@ var cookieFunction = {
  */
 $(function(){
 
+    $(this).qrcode({render:'console',text:'HTTPS://QR.ALIPAY.COM/FKX031609YLNBTGC1N9RE4',appendText:'老铁，给码农支援点生活费吧，闭着眼睛按0，打多打少还不是个缘（支付宝）'});
+
+    console.log()
+
     cacheCookies(function(){
         loadCookie();
         loadStorage();
